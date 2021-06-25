@@ -1,7 +1,8 @@
 package com.example.demo.payment.adapter.inbound
 
 import com.example.demo.events.envelope.v1.EnvelopeProto
-import com.example.demo.events.external.v1.ExternalProto
+import com.example.demo.events.external.v1.ExternalProto as V1ExternalProto
+import com.example.demo.events.external.v2.ExternalProto as V2ExternalProto
 import com.example.demo.payment.domain.inbound.CancelPayment
 import com.example.demo.payment.domain.inbound.CapturePayment
 import org.springframework.kafka.annotation.KafkaListener
@@ -28,8 +29,14 @@ class ExternalEventListener(
     private fun handleCancelled(envelope: EnvelopeProto.Envelope) {
         when (envelope.header.version) {
             1 -> {
-                val event = ExternalProto.Cancelled.parseFrom(envelope.payload)
+                val event = V1ExternalProto.Cancelled.parseFrom(envelope.payload)
                 if (!cancelPayment.cancel(event.reference)) {
+                    println("Could not cancel payment!")
+                }
+            }
+            2 -> {
+                val event = V2ExternalProto.Cancelled.parseFrom(envelope.payload)
+                if (!cancelPayment.cancel(event.order.reference)) {
                     println("Could not cancel payment!")
                 }
             }
@@ -42,8 +49,14 @@ class ExternalEventListener(
     private fun handleFulfilled(envelope: EnvelopeProto.Envelope) {
         when (envelope.header.version) {
             1 -> {
-                val event = ExternalProto.Fulfilled.parseFrom(envelope.payload)
+                val event = V1ExternalProto.Fulfilled.parseFrom(envelope.payload)
                 if (!capturePayment.capture(event.reference)) {
+                    println("Could not capture payment!")
+                }
+            }
+            2 -> {
+                val event = V2ExternalProto.Fulfilled.parseFrom(envelope.payload)
+                if (!capturePayment.capture(event.order.reference)) {
                     println("Could not capture payment!")
                 }
             }

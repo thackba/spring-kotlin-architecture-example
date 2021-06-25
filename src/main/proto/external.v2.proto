@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option java_outer_classname = "ExternalProto";
+
+package com.example.demo.events.external.v2;
+
+message Order {
+    string reference = 1;
+}
+
+message Cancelled {
+    Order order = 1;
+}
+
+message Fulfilled {
+    Order order = 1;
+}
