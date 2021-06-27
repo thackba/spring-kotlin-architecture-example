@@ -1,6 +1,7 @@
 package com.example.demo.payment.domain
 
 import com.example.demo.payment.domain.inbound.CapturePayment
+import com.example.demo.payment.domain.inbound.CreateInvoice
 import com.example.demo.payment.domain.outbound.CapturePSPGateway
 import com.example.demo.payment.domain.outbound.StorageGetGateway
 import com.example.demo.payment.domain.outbound.StorageRemoveGateway
@@ -10,7 +11,8 @@ import org.springframework.stereotype.Component
 class CapturePaymentService(
     private val storageGetGateway: StorageGetGateway,
     private val capturePSPGateway: CapturePSPGateway,
-    private val storageRemoveGateway: StorageRemoveGateway
+    private val storageRemoveGateway: StorageRemoveGateway,
+    private val createInvoice: CreateInvoice
 ) : CapturePayment {
 
     override fun capture(reference: String): Boolean {
@@ -19,6 +21,7 @@ class CapturePaymentService(
             val pspResult = capturePSPGateway.capture(payment.paymentId)
             if (pspResult) {
                 storageRemoveGateway.removePayment(reference)
+                createInvoice.createInvoice(reference)
             }
             pspResult
         } ?: true
